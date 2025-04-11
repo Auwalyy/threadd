@@ -1,110 +1,110 @@
-import * as React from 'react'
-import { Text, TextInput, TouchableOpacity, View } from 'react-native'
-import { useSignUp } from '@clerk/clerk-expo'
-import { Link, useRouter } from 'expo-router'
+import * as React from 'react';
+import {
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+  ActivityIndicator,
+  Alert,
+} from 'react-native';
+import { useSignUp, useOAuth, Clerk } from '@clerk/clerk-expo';
+import { Link, useRouter } from 'expo-router';
+import * as WebBrowser from 'expo-web-browser';
+
+WebBrowser.maybeCompleteAuthSession();
 
 export default function SignUpScreen() {
-  const { isLoaded, signUp, setActive } = useSignUp()
-  const router = useRouter()
+  const { isLoaded, signUp, setActive } = useSignUp();
+  const { startOAuthFlow } = useOAuth({ strategy: 'oauth_google' });
+  const router = useRouter();
 
-  const [emailAddress, setEmailAddress] = React.useState('')
-  const [password, setPassword] = React.useState('')
-  const [pendingVerification, setPendingVerification] = React.useState(false)
-  const [code, setCode] = React.useState('')
+  const [emailAddress, setEmailAddress] = React.useState('');
+  const [password, setPassword] = React.useState('');
+  const [loading, setLoading] = React.useState(false);
 
-  // Handle submission of sign-up form
+  // Email/password sign-up without verification
   const onSignUpPress = async () => {
-    if (!isLoaded) return
-
-    // Start sign-up process using email and password provided
-    try {
-      await signUp.create({
-        emailAddress,
-        password,
-      })
-
-      // Send user an email with verification code
-      await signUp.prepareEmailAddressVerification({ strategy: 'email_code' })
-
-      // Set 'pendingVerification' to true to display second form
-      // and capture OTP code
-      setPendingVerification(true)
-    } catch (err) {
-      // See https://clerk.com/docs/custom-flows/error-handling
-      // for more info on error handling
-      console.error(JSON.stringify(err, null, 2))
-    }
-  }
-
-  // Handle submission of verification form
-  const onVerifyPress = async () => {
-    if (!isLoaded) return
+    if (!isLoaded) return;
+    setLoading(true);
 
     try {
-      // Use the code the user provided to attempt verification
-      const signUpAttempt = await signUp.attemptEmailAddressVerification({
-        code,
-      })
+      const result = await signUp.create({ emailAddress, password });
 
-      // If verification was completed, set the session to active
-      // and redirect the user
-      if (signUpAttempt.status === 'complete') {
-        await setActive({ session: signUpAttempt.createdSessionId })
-        router.replace('/')
+      if (result.status === 'complete') {
+        await setActive({ session: result.createdSessionId });
+        router.replace('/home'); // Change this if your home route is different
       } else {
-        // If the status is not complete, check why. User may need to
-        // complete further steps.
-        console.error(JSON.stringify(signUpAttempt, null, 2))
+        console.warn('Further steps required:', result);
       }
     } catch (err) {
-      // See https://clerk.com/docs/custom-flows/error-handling
-      // for more info on error handling
-      console.error(JSON.stringify(err, null, 2))
+      Alert.alert('Sign-up error', err.errors?.[0]?.message || 'Something went wrong.');
+      console.error(err);
+    } finally {
+      setLoading(false);
     }
-  }
+  };
 
-  if (pendingVerification) {
-    return (
-      <>
-        <Text>Verify your email</Text>
-        <TextInput
-          value={code}
-          placeholder="Enter your verification code"
-          onChangeText={(code) => setCode(code)}
-        />
-        <TouchableOpacity onPress={onVerifyPress}>
-          <Text>Verify</Text>
-        </TouchableOpacity>
-      </>
-    )
-  }
+  // Google Sign-Up
+  const onGoogleSignUpPress = async () => {
+    setLoading(true);
+    try {
+      const { createdSessionId } = await startOAuthFlow();
+      if (createdSessionId) {
+        await Clerk.setActive({ session: createdSessionId });
+        router.replace('/home');
+      }
+    } catch (err) {
+      console.error('Google OAuth error:', err);
+      Alert.alert('Google sign-up failed');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
-    <View>
-      <>
-        <Text>Sign up</Text>
-        <TextInput
-          autoCapitalize="none"
-          value={emailAddress}
-          placeholder="Enter email"
-          onChangeText={(email) => setEmailAddress(email)}
-        />
-        <TextInput
-          value={password}
-          placeholder="Enter password"
-          secureTextEntry={true}
-          onChangeText={(password) => setPassword(password)}
-        />
-        <TouchableOpacity onPress={onSignUpPress}>
-          <Text>Continue</Text>
-        </TouchableOpacity>
-        <View style={{ display: 'flex', flexDirection: 'row', gap: 3 }}>
-          <Text>Already have an account?</Text>
-          <Link href="/sign-in">
-            <Text>Sign in</Text>
-          </Link>
-        </View>
-      </>
+    <View style={{ padding: 24 }}>
+      <Text style={{ fontSize: 24, marginBottom: 16 }}>Sign Up</Text>
+
+      <TextInput
+        autoCapitalize="none"
+        value={emailAddress}
+        placeholder="Email"
+        onChangeText={setEmailAddress}
+        style={{ marginBottom: 12, borderWidth: 1, padding: 10 }}
+      />
+      <TextInput
+        value={password}
+        placeholder="Password"
+        secureTextEntry
+        onChangeText={setPassword}
+        style={{ marginBottom: 12, borderWidth: 1, padding: 10 }}
+      />
+
+      <TouchableOpacity
+        onPress={onSignUpPress}
+        style={{ backgroundColor: '#000', padding: 12, marginBottom: 12 }}
+      >
+        <Text style={{ color: '#fff', textAlign: 'center' }}>
+          {loading ? 'Signing up...' : 'Continue'}
+        </Text>
+      </TouchableOpacity>
+
+      {/* Google Sign-Up */}
+      <TouchableOpacity
+        onPress={onGoogleSignUpPress}
+        style={{ backgroundColor: '#4285F4', padding: 12 }}
+      >
+        <Text style={{ color: '#fff', textAlign: 'center' }}>Sign up with Google</Text>
+      </TouchableOpacity>
+
+      <View style={{ flexDirection: 'row', marginTop: 16 }}>
+        <Text>Already have an account? </Text>
+        <Link href="/sign-in">
+          <Text style={{ color: 'blue' }}>Sign in</Text>
+        </Link>
+      </View>
+
+      {loading && <ActivityIndicator style={{ marginTop: 16 }} />}
     </View>
-  )
+  );
 }
