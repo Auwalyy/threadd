@@ -1,6 +1,7 @@
 import React from 'react';
-import { View, Text, StyleSheet, FlatList, Image, TouchableOpacity, Button } from 'react-native';
+import { View, Text, StyleSheet, FlatList, Image, TouchableOpacity } from 'react-native';
 import { useFavorites } from '../context/FavoritesContext';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 
 export default function CategoryScreen({ route }) {
   const { category } = route.params;
@@ -23,14 +24,20 @@ export default function CategoryScreen({ route }) {
           <View style={styles.imageContainer}>
             <Image source={item.src} style={styles.image} />
             <Text style={styles.imageTitle}>{item.title}</Text>
-            <Button
-              title={isFavorite(item.id) ? "Remove from Favorites" : "Add to Favorites"}
+            <TouchableOpacity
               onPress={() =>
                 isFavorite(item.id)
                   ? removeFromFavorites(item.id)
                   : addToFavorites(item)
               }
-            />
+            >
+              <Ionicons
+                name={isFavorite(item.id) ? "heart" : "heart-outline"} // Solid heart if favorited, outline if not
+                size={30}
+                color="red"
+                style={styles.heartIcon}
+              />
+            </TouchableOpacity>
           </View>
         )}
       />
@@ -62,6 +69,9 @@ const styles = StyleSheet.create({
   },
   imageTitle: {
     color: 'white',
+    marginTop: 10,
+  },
+  heartIcon: {
     marginTop: 10,
   },
 });
