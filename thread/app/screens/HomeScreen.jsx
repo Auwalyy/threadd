@@ -13,12 +13,12 @@ import { useNavigation } from '@react-navigation/native';
 export default function HomeScreen() {
   const navigation = useNavigation();
 
-  const storyText = ['Where every stitch tells a story'];
+  const storyText = ['Where heritage meets ambition'];
 
   const categories = [
     {
       id: '1',
-      title: 'Threaded',
+      title: 'Agbada',
       subcategories: [
         {
           id: '1-1',
@@ -47,11 +47,11 @@ export default function HomeScreen() {
           id: '1-3',
           title: 'Simmer',
           images: [
-            { id: '1-3-1', src: require('../../assets/simmer/sm1.jpeg'), title: 'simmer' },
-            { id: '1-3-2', src: require('../../assets/simmer/sm2.jpeg'), title: 'simmer' },
-            { id: '1-3-3', src: require('../../assets/simmer/sm3.jpeg'), title: 'simmer' },
-            { id: '1-3-4', src: require('../../assets/simmer/sm4.jpeg'), title: 'simmer' },
-            { id: '1-3-5', src: require('../../assets/simmer/sm5.jpeg'), title: 'simmer' },
+            { id: '1-3-1', src: require('../../assets/simmer/sm1.jpeg'), title: 'Simmer' },
+            { id: '1-3-2', src: require('../../assets/simmer/sm2.jpeg'), title: 'Simmer' },
+            { id: '1-3-3', src: require('../../assets/simmer/sm3.jpeg'), title: 'Simmer' },
+            { id: '1-3-4', src: require('../../assets/simmer/sm4.jpeg'), title: 'Simmer' },
+            { id: '1-3-5', src: require('../../assets/simmer/sm5.jpeg'), title: 'Simmer' },
           ],
         },
         {
@@ -143,11 +143,12 @@ const styles = StyleSheet.create({
     backgroundColor: '#0a0a0a',
     paddingHorizontal: 20,
     paddingTop: 12,
+    fontFamily: 'PlayfairDisplay-Regular',
   },
   title: {
     fontSize: 32,
     fontWeight: 'bold',
-    marginTop: 10,
+    marginTop: 19,
     marginBottom: 0,  
     textAlign: 'center',
     color: 'white',
@@ -168,7 +169,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     gap: 12,
-    paddingVertical: 10,
+    paddingVertical: 27,
     paddingHorizontal: 10,
   },
   imageWrapper: {

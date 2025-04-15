@@ -11,9 +11,15 @@ import {
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { useFavorites } from '../context/FavoritesContext';
 
-export default function CategoryScreen({ route }) {
-  const { category } = route.params;
+export default function CategoryScreen({ route, navigation }) {
+  // Hide header for this screen
+  React.useLayoutEffect(() => {
+    navigation.setOptions({
+      headerShown: false
+    });
+  }, [navigation]);
 
+  const { category } = route.params;
   const {
     favorites,
     addToFavorites,
@@ -39,9 +45,17 @@ export default function CategoryScreen({ route }) {
 
   const imagesToShow = getImagesToShow();
 
+  const handleMenuPress = (itemId) => {
+    console.log('Menu pressed for item:', itemId);
+    // Add your menu functionality here
+  };
+
   return (
-    <ScrollView style={styles.container}>
-      <Text style={styles.categoryTitle}>{category?.title}</Text>
+    <ScrollView 
+      style={styles.container}
+      contentContainerStyle={styles.scrollContent}
+    >
+      <Text style={styles.categoryTitle}>Threaded</Text>
 
       {hasSubcategories && (
         <View style={styles.categoryButtonsContainer}>
@@ -52,7 +66,12 @@ export default function CategoryScreen({ route }) {
             ]}
             onPress={() => setSelectedSubcategory('All')}
           >
-            <Text style={styles.categoryButtonText}>All</Text>
+            <Text style={[
+              styles.categoryButtonText,
+              selectedSubcategory === 'All' && styles.selectedCategoryButtonText
+            ]}>
+              All
+            </Text>
           </TouchableOpacity>
 
           {category.subcategories.map((sub) => (
@@ -60,12 +79,16 @@ export default function CategoryScreen({ route }) {
               key={sub.id}
               style={[
                 styles.categoryButton,
-                selectedSubcategory === sub.title &&
-                  styles.selectedCategoryButton,
+                selectedSubcategory === sub.title && styles.selectedCategoryButton,
               ]}
               onPress={() => setSelectedSubcategory(sub.title)}
             >
-              <Text style={styles.categoryButtonText}>{sub.title}</Text>
+              <Text style={[
+                styles.categoryButtonText,
+                selectedSubcategory === sub.title && styles.selectedCategoryButtonText
+              ]}>
+                {sub.title}
+              </Text>
             </TouchableOpacity>
           ))}
         </View>
@@ -75,30 +98,51 @@ export default function CategoryScreen({ route }) {
         data={imagesToShow}
         keyExtractor={(item) => item.id}
         numColumns={2}
+        scrollEnabled={false}
         columnWrapperStyle={styles.columnWrapper}
         contentContainerStyle={styles.contentContainer}
         renderItem={({ item }) => (
           <View style={styles.imageContainer}>
             <View style={styles.imageWrapper}>
-              <Image source={item.src} style={styles.image} />
-              <View style={styles.overlayTextContainer}>
-                <Text style={styles.overlayText}>{item.title}</Text>
-              </View>
-            </View>
-            <TouchableOpacity
-              onPress={() =>
-                isFavorite(item.id)
-                  ? removeFromFavorites(item.id)
-                  : addToFavorites(item)
-              }
-            >
-              <Ionicons
-                name={isFavorite(item.id) ? 'heart' : 'heart-outline'}
-                size={30}
-                color="red"
-                style={styles.heartIcon}
+              <Image 
+                source={item.src} 
+                style={styles.image} 
+                resizeMode="cover"
               />
-            </TouchableOpacity>
+              
+              {/* Centered Text Overlay */}
+              <View style={styles.centeredOverlay}>
+                <Text style={styles.centeredOverlayText}>{item.title}</Text>
+              </View>
+              
+              {/* Three-dot menu icon on the left */}
+              <TouchableOpacity 
+                style={styles.menuIcon}
+                onPress={() => handleMenuPress(item.id)}
+              >
+                <Ionicons 
+                  name="ellipsis-vertical" 
+                  size={20} 
+                  color="white" 
+                />
+              </TouchableOpacity>
+              
+              {/* Heart icon on the right */}
+              <TouchableOpacity
+                style={styles.heartIcon}
+                onPress={() =>
+                  isFavorite(item.id)
+                    ? removeFromFavorites(item.id)
+                    : addToFavorites(item)
+                }
+              >
+                <Ionicons
+                  name={isFavorite(item.id) ? 'heart' : 'heart-outline'}
+                  size={24}
+                  color={isFavorite(item.id) ? 'red' : 'white'}
+                />
+              </TouchableOpacity>
+            </View>
           </View>
         )}
       />
@@ -109,76 +153,99 @@ export default function CategoryScreen({ route }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    fontFamily: 'playfair display',
     backgroundColor: '#0a0a0a',
+  },
+  scrollContent: {
     padding: 15,
+    paddingBottom: 30,
   },
   categoryTitle: {
     fontSize: 24,
     fontWeight: 'bold',
     color: 'white',
-    marginBottom: 10,
+    marginBottom: 20,
     textAlign: 'center',
+    fontFamily: 'PlayfairDisplay-Bold',
   },
   categoryButtonsContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'center',
     marginBottom: 20,
+    gap: 10,
   },
   categoryButton: {
     paddingVertical: 8,
     paddingHorizontal: 15,
-    backgroundColor: '#1a1a1a',
+    backgroundColor: '#2a2a2a',
     borderRadius: 20,
-    marginHorizontal: 5,
-    marginVertical: 5,
   },
   selectedCategoryButton: {
     backgroundColor: '#ffffff',
   },
   categoryButtonText: {
-    color: 'black',
+    color: 'white',
     fontSize: 14,
+    fontFamily: 'PlayfairDisplay-Regular',
+  },
+  selectedCategoryButtonText: {
+    color: 'black',
   },
   contentContainer: {
-    paddingBottom: 40,
+    paddingBottom: 20,
   },
   columnWrapper: {
     justifyContent: 'space-between',
-    marginBottom: 20,
+    marginBottom: 15,
+    gap: 15,
   },
   imageContainer: {
     width: '48%',
-    alignItems: 'center',
+    marginBottom: 15,
   },
   imageWrapper: {
     width: '100%',
-    height: 200,
+    aspectRatio: 0.75,
     position: 'relative',
-    borderRadius: 20,
+    borderRadius: 15,
     overflow: 'hidden',
-    backgroundColor: 'gray',
+    backgroundColor: '#1a1a1a',
   },
   image: {
     width: '100%',
     height: '100%',
-    borderRadius: 20,
   },
-  overlayTextContainer: {
+  centeredOverlay: {
     position: 'absolute',
-    bottom: 10,
-    right: 10,
-     paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 8,
+    top: 140,
+    left: 1,
+    right: 6,
+    bottom: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
+   },
+  centeredOverlayText: {
+    color: 'white', 
+    fontSize: 22,
+    fontWeight: '500',
+    fontFamily: 'PlayfairDisplay-Bold',
+    textAlign: 'center',
+    padding: 10,
   },
-  overlayText: {
-    color: 'white',
-    fontSize: 12,
-    fontWeight: '600',
+  menuIcon: {
+    position: 'absolute',
+    top: 10,
+    left: 10,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    borderRadius: 15,
+    padding: 5,
   },
   heartIcon: {
-    marginTop: 10,
+    position: 'absolute',
+    top: 10,
+    right: 10,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    borderRadius: 15,
+    padding: 5,
   },
 });

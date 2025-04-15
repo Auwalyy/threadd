@@ -25,10 +25,13 @@ function HomeStackScreen() {
 }
 
 export default function App() {
+
+  
+
   return (
     <FavoritesProvider>
          <Tab.Navigator
-           screenOptions={({ route }) => ({
+          screenOptions={({ route }) => ({
             tabBarIcon: ({ color, size }) => {
               let iconName;
 
@@ -44,15 +47,18 @@ export default function App() {
 
               return <Ionicons name={iconName} size={size} color={color} />;
             },
-            tabBarLabel: () => null, 
-            tabBarActiveTintColor: 'tomato',
+            tabBarLabel: () => null,
+            tabBarActiveTintColor: 'black',
             tabBarInactiveTintColor: 'gray',
             tabBarStyle: {
-              backgroundColor: 'white',
-              borderTopColor: 'lightgray',
-              borderBottomEndRadius: 35,
-              borderBottomStartRadius: 35,
-              
+              backgroundColor: '#2a2a2a',
+              height: 60,
+              borderTopWidth: 0, // This removes the top border line
+              elevation: 0, // Removes shadow on Android
+              shadowOpacity: 0, // Removes shadow on iOS
+            },
+            tabBarItemStyle: {
+              margin: 5,
             },
             headerShown: false,
           })}
